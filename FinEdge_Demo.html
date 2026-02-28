@@ -1,0 +1,1153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FinEdge — Finance Intelligence Platform</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300&family=DM+Mono:wght@400;500&family=Playfair+Display:wght@600;700&display=swap');
+
+  :root {
+    --bg:      #F4F5F8;
+    --bg2:     #FFFFFF;
+    --bg3:     #ECEEF4;
+    --bg4:     #E2E5EF;
+    --navy:    #1A1A2E;
+    --red:     #E31837;
+    --slate:   #5A6480;
+    --slate2:  #2A3050;
+    --white:   #FFFFFF;
+    --green:   #0E9E57;
+    --amber:   #C47A00;
+    --blue:    #1D61C8;
+    --border:  rgba(26,26,46,0.1);
+    --shadow:  0 1px 4px rgba(26,26,46,0.08);
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--navy);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── SCREENS ── */
+  .screen { display:none; min-height:100vh; flex-direction:column; }
+  .screen.active { display:flex; }
+
+  /* ── TOP NAV ── */
+  .topnav {
+    display:flex; align-items:center; justify-content:space-between;
+    padding: 0 2rem;
+    height: 56px;
+    background: var(--navy);
+    border-bottom: 1px solid rgba(255,255,255,.08);
+    position: sticky; top:0; z-index:100;
+  }
+  .topnav-logo {
+    display:flex; align-items:center; gap:.6rem;
+  }
+  .logo-mark {
+    width:28px; height:28px;
+    background: var(--red);
+    clip-path: polygon(0 0, 70% 0, 100% 50%, 70% 100%, 0 100%);
+    flex-shrink:0;
+  }
+  .logo-text {
+    font-family: 'Playfair Display', serif;
+    font-size:1.1rem; font-weight:700;
+    letter-spacing:.04em;
+    color: #FFFFFF;
+  }
+  .logo-text span { color: var(--red); }
+  .topnav-breadcrumb {
+    display:flex; align-items:center; gap:.5rem;
+    font-size:.78rem; color: rgba(255,255,255,.5);
+  }
+  .breadcrumb-sep { opacity:.4; }
+  .breadcrumb-item { cursor:pointer; transition:color .2s; color:rgba(255,255,255,.5); }
+  .breadcrumb-item:hover { color: #FFFFFF; }
+  .breadcrumb-item.current { color: rgba(255,255,255,.85); }
+  .topnav-right {
+    display:flex; align-items:center; gap:1rem;
+  }
+  .nav-badge {
+    font-size:.7rem; font-family:'DM Mono',monospace;
+    background: rgba(227,24,55,.25);
+    color: #FF8099;
+    border: 1px solid rgba(227,24,55,.4);
+    padding:.2rem .6rem; border-radius:20px;
+  }
+  .nav-user {
+    width:30px; height:30px; border-radius:50%;
+    background: linear-gradient(135deg, #3B82F6, var(--red));
+    display:flex; align-items:center; justify-content:center;
+    font-size:.7rem; font-weight:700; cursor:pointer; color:#fff;
+  }
+
+  /* ── PORTAL ── */
+  .portal-hero {
+    padding: 2.5rem 2.5rem 1.5rem;
+    border-bottom: 1px solid var(--border);
+    background: linear-gradient(135deg, var(--navy) 0%, #2A1A2E 100%);
+    position:relative; overflow:hidden;
+  }
+  .portal-hero::before {
+    content:'';
+    position:absolute; top:-40px; right:-40px;
+    width:320px; height:320px;
+    background: radial-gradient(circle, rgba(227,24,55,.12) 0%, transparent 70%);
+    pointer-events:none;
+  }
+  .portal-greeting {
+    font-size:.75rem; color: rgba(255,255,255,.5); letter-spacing:.1em; text-transform:uppercase;
+    margin-bottom:.35rem;
+  }
+  .portal-title {
+    font-family:'Playfair Display', serif;
+    font-size:1.8rem; font-weight:700;
+    line-height:1.2; margin-bottom:.4rem; color:#FFFFFF;
+  }
+  .portal-title span { color: #FF6B81; }
+  .portal-sub {
+    font-size:.85rem; color: rgba(255,255,255,.55);
+    max-width:520px; line-height:1.6;
+  }
+  .portal-kpis {
+    display:flex; gap:1rem; margin-top:1.5rem; flex-wrap:wrap;
+  }
+  .kpi-chip {
+    display:flex; align-items:center; gap:.5rem;
+    background: rgba(255,255,255,.08);
+    border: 1px solid rgba(255,255,255,.12);
+    border-radius:8px; padding:.4rem .85rem;
+  }
+  .kpi-dot { width:7px; height:7px; border-radius:50%; }
+  .kpi-label { font-size:.72rem; color:rgba(255,255,255,.5); }
+  .kpi-val { font-size:.82rem; font-weight:600; font-family:'DM Mono',monospace; }
+
+  .portal-wings {
+    display:grid; grid-template-columns:1fr 1fr;
+    gap:1px;
+    background: var(--border);
+    flex:1;
+  }
+  .wing {
+    background: var(--bg2);
+    padding:2rem 2rem 1.5rem;
+    display:flex; flex-direction:column;
+    cursor:default;
+  }
+  .wing-header {
+    display:flex; align-items:flex-start; gap:1rem; margin-bottom:1.5rem;
+  }
+  .wing-icon {
+    width:44px; height:44px; border-radius:10px;
+    display:flex; align-items:center; justify-content:center;
+    font-size:1.2rem; flex-shrink:0;
+  }
+  .wing-icon.exec { background: rgba(227,24,55,.08); border:1px solid rgba(227,24,55,.18); }
+  .wing-icon.insight { background: rgba(29,97,200,.08); border:1px solid rgba(29,97,200,.18); }
+  .wing-label {
+    font-size:.65rem; text-transform:uppercase; letter-spacing:.12em;
+    margin-bottom:.2rem;
+  }
+  .wing-label.exec { color: var(--red); }
+  .wing-label.insight { color: var(--blue); }
+  .wing-title { font-size:1rem; font-weight:600; line-height:1.3; color:var(--navy); }
+  .wing-desc { font-size:.8rem; color:var(--slate); line-height:1.5; }
+
+  .feature-cards { display:flex; flex-direction:column; gap:.5rem; flex:1; }
+  .feature-card {
+    display:flex; align-items:center; justify-content:space-between;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius:10px; padding:.75rem 1rem;
+    cursor:pointer; transition:all .2s;
+    position:relative; overflow:hidden;
+  }
+  .feature-card::before {
+    content:''; position:absolute; left:0; top:0; bottom:0; width:3px;
+    background: transparent; transition:background .2s;
+  }
+  .wing.exec .feature-card::before { background: rgba(227,24,55,.35); }
+  .wing.insight .feature-card::before { background: rgba(29,97,200,.35); }
+  .feature-card:hover {
+    background: var(--white);
+    border-color: rgba(26,26,46,.18);
+    transform: translateX(2px);
+    box-shadow: var(--shadow);
+  }
+  .feature-card:hover::before { width:4px; }
+  .fc-left { display:flex; align-items:center; gap:.75rem; }
+  .fc-icon { font-size:1.1rem; }
+  .fc-name { font-size:.85rem; font-weight:500; color:var(--navy); }
+  .fc-sub { font-size:.7rem; color:var(--slate); margin-top:.1rem; }
+  .fc-arrow {
+    font-size:.9rem; color:var(--slate);
+    transition: transform .2s, color .2s;
+  }
+  .feature-card:hover .fc-arrow { transform:translateX(3px); color:var(--navy); }
+
+  .wing-footer {
+    margin-top:1rem; padding-top:.75rem; border-top:1px solid var(--border);
+    display:flex; align-items:center; justify-content:space-between;
+  }
+  .wing-footer-label { font-size:.7rem; color:var(--slate); }
+  .status-dot { display:inline-block; width:6px; height:6px; border-radius:50%; margin-right:.35rem; }
+
+  /* ── SECTION PAGES ── */
+  .section-header {
+    padding:1.25rem 2rem;
+    background: var(--bg2);
+    border-bottom:1px solid var(--border);
+    display:flex; align-items:center; gap:1rem;
+    box-shadow: var(--shadow);
+  }
+  .back-btn {
+    display:flex; align-items:center; gap:.4rem;
+    font-size:.8rem; color:var(--slate);
+    cursor:pointer; padding:.35rem .7rem; border-radius:6px;
+    background: var(--bg); border:1px solid var(--border);
+    transition:all .2s;
+  }
+  .back-btn:hover { color:var(--navy); background:var(--bg3); border-color:rgba(26,26,46,.2); }
+  .section-title-area { flex:1; }
+  .section-label { font-size:.65rem; text-transform:uppercase; letter-spacing:.12em; margin-bottom:.2rem; }
+  .section-title { font-size:1.1rem; font-weight:600; color:var(--navy); }
+
+  .section-grid {
+    display:grid; grid-template-columns:repeat(3,1fr);
+    gap:1px; background:var(--border); flex:1;
+  }
+  .section-card {
+    background:var(--bg2); padding:2rem;
+    display:flex; flex-direction:column; gap:1rem;
+    cursor:pointer; transition:all .2s;
+    position:relative; overflow:hidden;
+  }
+  .section-card:hover { background:var(--bg); box-shadow:inset 0 0 0 1px rgba(26,26,46,.1); }
+  .section-card::after {
+    content:''; position:absolute; bottom:0; left:0; right:0; height:3px;
+    background: transparent; transition:background .2s;
+  }
+  .section-card:hover::after { background: var(--red); }
+  .sc-icon {
+    width:52px; height:52px; border-radius:12px;
+    display:flex; align-items:center; justify-content:center;
+    font-size:1.4rem;
+    background: rgba(227,24,55,.08); border:1px solid rgba(227,24,55,.15);
+  }
+  .sc-icon.blue { background:rgba(29,97,200,.08); border-color:rgba(29,97,200,.15); }
+  .sc-title { font-size:1rem; font-weight:600; line-height:1.3; color:var(--navy); }
+  .sc-desc { font-size:.8rem; color:var(--slate); line-height:1.55; flex:1; }
+  .sc-cta {
+    display:inline-flex; align-items:center; gap:.4rem;
+    font-size:.78rem; color:var(--red); font-weight:500;
+  }
+  .sc-cta.blue { color:var(--blue); }
+  .sc-badge {
+    position:absolute; top:1rem; right:1rem;
+    font-size:.62rem; font-family:'DM Mono',monospace;
+    padding:.2rem .5rem; border-radius:4px;
+    background:rgba(14,158,87,.1); color:var(--green); border:1px solid rgba(14,158,87,.25);
+  }
+
+  /* ── CLOSE READINESS DASHBOARD ── */
+  .dashboard-layout {
+    display:grid; grid-template-columns:1fr 1fr 1fr;
+    gap:1px; background:var(--border);
+    padding:0;
+  }
+  .dash-full { grid-column: 1 / -1; }
+  .dash-2col { grid-column: span 2; }
+
+  .panel {
+    background:var(--bg2); padding:1.25rem 1.5rem;
+  }
+  .panel-title {
+    font-size:.68rem; text-transform:uppercase; letter-spacing:.1em;
+    color:var(--slate); margin-bottom:1rem;
+    display:flex; align-items:center; justify-content:space-between;
+  }
+  .panel-title-tag {
+    font-size:.62rem; padding:.15rem .45rem; border-radius:4px;
+    background:rgba(227,24,55,.08); color:var(--red); border:1px solid rgba(227,24,55,.2);
+  }
+
+  .close-progress-grid {
+    display:grid; grid-template-columns:repeat(4,1fr); gap:.75rem;
+  }
+  .close-entity {
+    background:var(--bg); border:1px solid var(--border);
+    border-radius:8px; padding:.75rem;
+  }
+  .ce-name { font-size:.75rem; font-weight:600; margin-bottom:.4rem; color:var(--navy); }
+  .ce-bar-track { height:5px; background:var(--bg4); border-radius:3px; margin-bottom:.4rem; }
+  .ce-bar { height:5px; border-radius:3px; transition:width .8s ease; }
+  .ce-status { font-size:.68rem; display:flex; justify-content:space-between; }
+  .ce-pct { font-family:'DM Mono',monospace; }
+
+  .exception-list { display:flex; flex-direction:column; gap:.5rem; }
+  .exc-item {
+    display:flex; align-items:center; gap:.75rem;
+    background:var(--bg); border:1px solid var(--border);
+    border-radius:8px; padding:.6rem .85rem;
+    font-size:.78rem;
+  }
+  .exc-rank {
+    font-family:'DM Mono',monospace; font-size:.7rem;
+    color:var(--slate); width:18px; text-align:center;
+  }
+  .exc-severity {
+    width:7px; height:7px; border-radius:50%; flex-shrink:0;
+  }
+  .exc-desc { flex:1; color:var(--navy); }
+  .exc-entity { font-size:.68rem; color:var(--slate); }
+  .exc-amount { font-family:'DM Mono',monospace; font-size:.78rem; font-weight:500; }
+  .exc-action {
+    font-size:.68rem; color:var(--blue); cursor:pointer;
+    padding:.2rem .5rem; border:1px solid rgba(29,97,200,.25);
+    border-radius:4px; background:rgba(29,97,200,.06);
+    white-space:nowrap;
+  }
+
+  .day-tracker { display:flex; gap:.5rem; align-items:flex-end; }
+  .day-col { display:flex; flex-direction:column; align-items:center; gap:.3rem; flex:1; }
+  .day-bar-track { width:100%; background:var(--bg4); border-radius:4px; height:80px; display:flex; align-items:flex-end; }
+  .day-bar { width:100%; border-radius:4px 4px 0 0; transition:height .6s ease; }
+  .day-label { font-size:.62rem; color:var(--slate); font-family:'DM Mono',monospace; }
+  .day-val { font-size:.62rem; color:var(--slate2); }
+
+  .stat-row { display:grid; grid-template-columns:repeat(3,1fr); gap:1rem; }
+  .stat-box {
+    background:var(--bg); border:1px solid var(--border);
+    border-radius:8px; padding:.85rem 1rem; text-align:center;
+  }
+  .stat-val { font-size:1.5rem; font-weight:700; font-family:'DM Mono',monospace; }
+  .stat-label { font-size:.7rem; color:var(--slate); margin-top:.2rem; }
+
+  /* ── FORECAST SCREEN ── */
+  .forecast-layout {
+    display:grid; grid-template-columns:1fr 340px;
+    gap:1px; background:var(--border); flex:1;
+  }
+  .chart-panel { background:var(--bg2); padding:1.5rem; display:flex; flex-direction:column; gap:1rem; }
+  .chart-controls { display:flex; gap:.5rem; align-items:center; }
+  .ctrl-btn {
+    font-size:.72rem; padding:.3rem .7rem; border-radius:6px;
+    background:var(--bg); border:1px solid var(--border);
+    color:var(--slate); cursor:pointer; transition:all .2s;
+  }
+  .ctrl-btn.active, .ctrl-btn:hover { background:rgba(227,24,55,.08); border-color:rgba(227,24,55,.3); color:var(--red); font-weight:600; }
+  .chart-wrapper { flex:1; min-height:280px; position:relative; }
+  .anomaly-markers { display:flex; gap:.5rem; flex-wrap:wrap; margin-top:.5rem; }
+  .anomaly-chip {
+    display:flex; align-items:center; gap:.4rem;
+    font-size:.7rem; padding:.25rem .6rem; border-radius:20px;
+    background:rgba(196,122,0,.08); border:1px solid rgba(196,122,0,.25);
+    color: var(--amber);
+    cursor:pointer; transition:all .2s;
+  }
+  .anomaly-chip:hover { background:rgba(196,122,0,.14); }
+  .anomaly-chip.red { background:rgba(227,24,55,.08); border-color:rgba(227,24,55,.25); color:var(--red); }
+
+  .ai-panel {
+    background:var(--bg2); padding:1.25rem; display:flex; flex-direction:column; gap:1rem;
+    border-left:1px solid var(--border);
+  }
+  .ai-header {
+    display:flex; align-items:center; gap:.6rem;
+    padding-bottom:.75rem; border-bottom:1px solid var(--border);
+  }
+  .ai-avatar {
+    width:30px; height:30px; border-radius:8px;
+    background: linear-gradient(135deg, var(--red), #3B82F6);
+    display:flex; align-items:center; justify-content:center;
+    font-size:.75rem; font-weight:700; color:#fff;
+  }
+  .ai-name { font-size:.82rem; font-weight:600; color:var(--navy); }
+  .ai-status { font-size:.68rem; color:var(--green); }
+  .ai-disclaimer {
+    font-size:.65rem; color:#7A5A00;
+    background:rgba(196,122,0,.08); border:1px solid rgba(196,122,0,.2);
+    border-radius:6px; padding:.4rem .6rem;
+    display:flex; gap:.4rem; align-items:flex-start;
+  }
+  .ai-commentary { display:flex; flex-direction:column; gap:.75rem; flex:1; overflow-y:auto; }
+  .ai-msg {
+    background:var(--bg); border:1px solid var(--border);
+    border-radius:10px; padding:.85rem; font-size:.78rem; line-height:1.6;
+    color:var(--slate);
+  }
+  .ai-msg strong { color:var(--navy); }
+  .ai-msg .tag {
+    display:inline-block; font-size:.62rem; padding:.1rem .4rem;
+    border-radius:4px; margin-right:.3rem; font-family:'DM Mono',monospace;
+  }
+  .tag-warn { background:rgba(196,122,0,.1); color:var(--amber); border:1px solid rgba(196,122,0,.2); }
+  .tag-risk { background:rgba(227,24,55,.08); color:var(--red); border:1px solid rgba(227,24,55,.2); }
+  .tag-ok { background:rgba(14,158,87,.08); color:var(--green); border:1px solid rgba(14,158,87,.2); }
+  .ai-actions { display:flex; flex-direction:column; gap:.5rem; }
+  .ai-action-btn {
+    font-size:.75rem; padding:.5rem .85rem; border-radius:8px;
+    background:var(--bg); border:1px solid var(--border);
+    color:var(--slate); cursor:pointer; transition:all .2s; text-align:left;
+    display:flex; align-items:center; gap:.5rem;
+  }
+  .ai-action-btn:hover { background:rgba(227,24,55,.06); border-color:rgba(227,24,55,.25); color:var(--navy); }
+
+  .review-banner {
+    background:rgba(196,122,0,.07); border:1px solid rgba(196,122,0,.22);
+    border-radius:8px; padding:.6rem 1rem; font-size:.75rem;
+    display:flex; align-items:center; gap:.6rem; color:var(--amber);
+  }
+
+  /* ── ANIMATIONS ── */
+  @keyframes fadeInUp {
+    from { opacity:0; transform:translateY(12px); }
+    to   { opacity:1; transform:translateY(0); }
+  }
+  @keyframes pulse {
+    0%,100% { opacity:1; } 50% { opacity:.35; }
+  }
+  .animate-in { animation: fadeInUp .4s ease forwards; }
+  .pulse { animation: pulse 2s infinite; }
+
+  .live-dot {
+    display:inline-block; width:6px; height:6px; border-radius:50%;
+    background:var(--green); margin-right:.4rem;
+    animation: pulse 2s infinite;
+  }
+
+  /* ── UTILITY ── */
+  .text-red { color:var(--red); }
+  .text-green { color:var(--green); }
+  .text-amber { color:var(--amber); }
+  .text-blue { color:var(--blue); }
+  .text-slate { color:var(--slate); }
+  .mono { font-family:'DM Mono',monospace; }
+  .fw6 { font-weight:600; }
+
+  .content-scroll { flex:1; overflow-y:auto; }
+
+  /* scrollbar */
+  ::-webkit-scrollbar { width:5px; height:5px; }
+  ::-webkit-scrollbar-track { background:var(--bg3); }
+  ::-webkit-scrollbar-thumb { background:var(--bg4); border-radius:3px; }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- SCREEN 1: PORTAL                                       -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<div class="screen active" id="screen-portal">
+  <div class="topnav">
+    <div class="topnav-logo">
+      <div class="logo-mark"></div>
+      <div class="logo-text">Fin<span>Edge</span></div>
+    </div>
+    <div class="topnav-breadcrumb">
+      <span class="breadcrumb-item current">Home</span>
+    </div>
+    <div class="topnav-right">
+      <div class="nav-badge">R2 Live</div>
+      <div class="nav-user">AF</div>
+    </div>
+  </div>
+
+  <div class="portal-hero animate-in">
+    <div class="portal-greeting">Good morning, Amanda</div>
+    <div class="portal-title">Finance Intelligence <span>Platform</span></div>
+    <div class="portal-sub">Governed data. Actionable intelligence. Built with Finance, not for Finance.</div>
+    <div class="portal-kpis">
+      <div class="kpi-chip">
+        <div class="kpi-dot" style="background:var(--green)"></div>
+        <span class="kpi-label">Data Trust</span>
+        <span class="kpi-val text-green">97.3%</span>
+      </div>
+      <div class="kpi-chip">
+        <div class="kpi-dot" style="background:var(--amber)"></div>
+        <span class="kpi-label">Close Progress</span>
+        <span class="kpi-val text-amber">Day 4 / 6</span>
+      </div>
+      <div class="kpi-chip">
+        <div class="kpi-dot" style="background:var(--blue)"></div>
+        <span class="kpi-label">Open Exceptions</span>
+        <span class="kpi-val text-blue">14</span>
+      </div>
+      <div class="kpi-chip">
+        <div class="kpi-dot" style="background:var(--red)"></div>
+        <span class="kpi-label">Forecast Drift Signal</span>
+        <span class="kpi-val text-red">⚠ APAC</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="portal-wings" style="flex:1">
+    <!-- Execution Support Wing -->
+    <div class="wing exec animate-in" style="animation-delay:.1s">
+      <div class="wing-header">
+        <div class="wing-icon exec">🎯</div>
+        <div>
+          <div class="wing-label exec">Execution Support</div>
+          <div class="wing-title">Close-Cycle Tools & Ranked Exceptions</div>
+          <div class="wing-desc" style="margin-top:.3rem">Controllers primary · Real-time close visibility, ranked exception management, and guided reconciliation.</div>
+        </div>
+      </div>
+      <div class="feature-cards">
+        <div class="feature-card" onclick="showScreen('screen-exec')">
+          <div class="fc-left">
+            <div class="fc-icon">📊</div>
+            <div>
+              <div class="fc-name">Close Readiness Dashboard</div>
+              <div class="fc-sub">Entity-level progress · Exception prioritization</div>
+            </div>
+          </div>
+          <div class="fc-arrow">›</div>
+        </div>
+        <div class="feature-card" onclick="showScreen('screen-exec')">
+          <div class="fc-left">
+            <div class="fc-icon">⚡</div>
+            <div>
+              <div class="fc-name">Exception Prioritization (Ranked)</div>
+              <div class="fc-sub">Materiality-ranked · Guided resolution steps</div>
+            </div>
+          </div>
+          <div class="fc-arrow">›</div>
+        </div>
+        <div class="feature-card" onclick="showScreen('screen-exec')">
+          <div class="fc-left">
+            <div class="fc-icon">🔍</div>
+            <div>
+              <div class="fc-name">Assistive Recon Support (H-i-L)</div>
+              <div class="fc-sub">Rule-based diagnostics · Human-in-the-loop</div>
+            </div>
+          </div>
+          <div class="fc-arrow">›</div>
+        </div>
+      </div>
+      <div class="wing-footer">
+        <span class="wing-footer-label"><span class="live-dot"></span>Live · Jan 2025 Close</span>
+        <span class="wing-footer-label text-amber">14 exceptions open</span>
+      </div>
+    </div>
+
+    <!-- Insight & Intelligence Wing -->
+    <div class="wing insight animate-in" style="animation-delay:.2s">
+      <div class="wing-header">
+        <div class="wing-icon insight">🧠</div>
+        <div>
+          <div class="wing-label insight">Insight & Intelligence</div>
+          <div class="wing-title">Forward-Looking Signals & Scenario Modeling</div>
+          <div class="wing-desc" style="margin-top:.3rem">FP&A primary · Anomaly detection, profitability visibility, and driver-based what-if analysis.</div>
+        </div>
+      </div>
+      <div class="feature-cards">
+        <div class="feature-card" onclick="showScreen('screen-insight')">
+          <div class="fc-left">
+            <div class="fc-icon">📈</div>
+            <div>
+              <div class="fc-name">Forecast with Early Warning</div>
+              <div class="fc-sub">Anomaly detection · AI-assisted commentary</div>
+            </div>
+          </div>
+          <div class="fc-arrow">›</div>
+        </div>
+        <div class="feature-card" onclick="showScreen('screen-insight')">
+          <div class="fc-left">
+            <div class="fc-icon">💡</div>
+            <div>
+              <div class="fc-name">Deep Profitability Driver Dashboard</div>
+              <div class="fc-sub">Product · Customer · Geography breakdown</div>
+            </div>
+          </div>
+          <div class="fc-arrow">›</div>
+        </div>
+        <div class="feature-card" onclick="showScreen('screen-insight')">
+          <div class="fc-left">
+            <div class="fc-icon">🔬</div>
+            <div>
+              <div class="fc-name">What-If Scenario Analysis</div>
+              <div class="fc-sub">Driver-based sensitivity · EBITDA impact</div>
+            </div>
+          </div>
+          <div class="fc-arrow">›</div>
+        </div>
+      </div>
+      <div class="wing-footer">
+        <span class="wing-footer-label"><span class="live-dot"></span>Live · Q1 2025 Forecast</span>
+        <span class="wing-footer-label text-red">⚠ APAC drift detected</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- SCREEN 2: EXECUTION SUPPORT — Feature Select          -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<div class="screen" id="screen-exec">
+  <div class="topnav">
+    <div class="topnav-logo">
+      <div class="logo-mark"></div>
+      <div class="logo-text">Fin<span>Edge</span></div>
+    </div>
+    <div class="topnav-breadcrumb">
+      <span class="breadcrumb-item" onclick="showScreen('screen-portal')">Home</span>
+      <span class="breadcrumb-sep">›</span>
+      <span class="breadcrumb-item current">Execution Support</span>
+    </div>
+    <div class="topnav-right">
+      <div class="nav-badge">R3 Live</div>
+      <div class="nav-user">AF</div>
+    </div>
+  </div>
+
+  <div class="section-header animate-in">
+    <div class="back-btn" onclick="showScreen('screen-portal')">← Back</div>
+    <div class="section-title-area">
+      <div class="section-label text-red">Execution Support</div>
+      <div class="section-title">Close-Cycle Tools for Controllers</div>
+    </div>
+  </div>
+
+  <div class="section-grid animate-in content-scroll">
+    <div class="section-card" onclick="showScreen('screen-close')">
+      <div class="sc-badge">Live</div>
+      <div class="sc-icon">📊</div>
+      <div class="sc-title">Close Readiness Dashboard</div>
+      <div class="sc-desc">Entity-level close progress tracking with exception prioritization by materiality. Real-time visibility across all regions.</div>
+      <div class="sc-cta">Open Dashboard ›</div>
+    </div>
+    <div class="section-card" onclick="showScreen('screen-close')">
+      <div class="sc-badge">Live</div>
+      <div class="sc-icon">⚡</div>
+      <div class="sc-title">Exception Prioritization (Ranked)</div>
+      <div class="sc-desc">Materiality-ranked exception queue with guided investigation steps. Finance-defined thresholds surface the issues that matter most.</div>
+      <div class="sc-cta">View Exceptions ›</div>
+    </div>
+    <div class="section-card" onclick="showScreen('screen-close')">
+      <div class="sc-icon">🔍</div>
+      <div class="sc-title">Assistive Recon Support (H-i-L)</div>
+      <div class="sc-desc">Rule-based diagnostic checks with guided investigation steps. Human-in-the-loop design — no auto-posting, Finance executes in Oracle.</div>
+      <div class="sc-cta">Start Recon ›</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- SCREEN 3: CLOSE READINESS DASHBOARD                   -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<div class="screen" id="screen-close">
+  <div class="topnav">
+    <div class="topnav-logo">
+      <div class="logo-mark"></div>
+      <div class="logo-text">Fin<span>Edge</span></div>
+    </div>
+    <div class="topnav-breadcrumb">
+      <span class="breadcrumb-item" onclick="showScreen('screen-portal')">Home</span>
+      <span class="breadcrumb-sep">›</span>
+      <span class="breadcrumb-item" onclick="showScreen('screen-exec')">Execution Support</span>
+      <span class="breadcrumb-sep">›</span>
+      <span class="breadcrumb-item current">Close Readiness</span>
+    </div>
+    <div class="topnav-right">
+      <div class="nav-badge">Jan 2025 Close</div>
+      <div class="nav-user">AF</div>
+    </div>
+  </div>
+
+  <div class="content-scroll">
+    <!-- Top stat bar -->
+    <div class="panel animate-in" style="background:var(--bg3); border-bottom:1px solid var(--border)">
+      <div class="stat-row">
+        <div class="stat-box">
+          <div class="stat-val text-amber">Day 4</div>
+          <div class="stat-label">Current Close Day (Target: 6)</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-val text-red">14</div>
+          <div class="stat-label">Open Exceptions</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-val text-green">83%</div>
+          <div class="stat-label">Entities On Track</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="dashboard-layout animate-in">
+
+      <!-- Entity Progress -->
+      <div class="panel dash-2col">
+        <div class="panel-title">
+          Entity Close Progress
+          <span class="panel-title-tag">8 Entities</span>
+        </div>
+        <div class="close-progress-grid">
+          <div class="close-entity">
+            <div class="ce-name">Americas — US</div>
+            <div class="ce-bar-track"><div class="ce-bar" style="width:92%;background:var(--green)"></div></div>
+            <div class="ce-status"><span class="text-slate">Recon</span><span class="ce-pct text-green">92%</span></div>
+          </div>
+          <div class="close-entity">
+            <div class="ce-name">Americas — Canada</div>
+            <div class="ce-bar-track"><div class="ce-bar" style="width:88%;background:var(--green)"></div></div>
+            <div class="ce-status"><span class="text-slate">JE Review</span><span class="ce-pct text-green">88%</span></div>
+          </div>
+          <div class="close-entity">
+            <div class="ce-name">EMEA — UK</div>
+            <div class="ce-bar-track"><div class="ce-bar" style="width:74%;background:var(--amber)"></div></div>
+            <div class="ce-status"><span class="text-slate">Exceptions</span><span class="ce-pct text-amber">74%</span></div>
+          </div>
+          <div class="close-entity">
+            <div class="ce-name">EMEA — Germany</div>
+            <div class="ce-bar-track"><div class="ce-bar" style="width:61%;background:var(--amber)"></div></div>
+            <div class="ce-status"><span class="text-slate">Recon</span><span class="ce-pct text-amber">61%</span></div>
+          </div>
+          <div class="close-entity">
+            <div class="ce-name">APAC — Singapore</div>
+            <div class="ce-bar-track"><div class="ce-bar" style="width:45%;background:var(--red)"></div></div>
+            <div class="ce-status"><span class="text-slate">Data Load</span><span class="ce-pct text-red">45%</span></div>
+          </div>
+          <div class="close-entity">
+            <div class="ce-name">APAC — Japan</div>
+            <div class="ce-bar-track"><div class="ce-bar" style="width:52%;background:var(--amber)"></div></div>
+            <div class="ce-status"><span class="text-slate">Validation</span><span class="ce-pct text-amber">52%</span></div>
+          </div>
+          <div class="close-entity">
+            <div class="ce-name">Corporate HQ</div>
+            <div class="ce-bar-track"><div class="ce-bar" style="width:96%;background:var(--green)"></div></div>
+            <div class="ce-status"><span class="text-slate">Final Review</span><span class="ce-pct text-green">96%</span></div>
+          </div>
+          <div class="close-entity">
+            <div class="ce-name">Treasury</div>
+            <div class="ce-bar-track"><div class="ce-bar" style="width:100%;background:var(--green)"></div></div>
+            <div class="ce-status"><span class="text-slate">Complete</span><span class="ce-pct text-green">✓</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Close Day Timeline -->
+      <div class="panel">
+        <div class="panel-title">Close Day Timeline <span style="font-size:.65rem;color:var(--green)">● Live</span></div>
+        <div class="day-tracker">
+          <div class="day-col">
+            <div class="day-val">42</div>
+            <div class="day-bar-track"><div class="day-bar" style="height:100%;background:var(--green)"></div></div>
+            <div class="day-label">D1</div>
+          </div>
+          <div class="day-col">
+            <div class="day-val">38</div>
+            <div class="day-bar-track"><div class="day-bar" style="height:90%;background:var(--green)"></div></div>
+            <div class="day-label">D2</div>
+          </div>
+          <div class="day-col">
+            <div class="day-val">31</div>
+            <div class="day-bar-track"><div class="day-bar" style="height:74%;background:var(--green)"></div></div>
+            <div class="day-label">D3</div>
+          </div>
+          <div class="day-col">
+            <div class="day-val">14</div>
+            <div class="day-bar-track"><div class="day-bar" style="height:33%;background:var(--amber)"></div></div>
+            <div class="day-label">D4 ◀</div>
+          </div>
+          <div class="day-col">
+            <div class="day-val">—</div>
+            <div class="day-bar-track"><div class="day-bar" style="height:0%;background:var(--bg4)"></div></div>
+            <div class="day-label">D5</div>
+          </div>
+          <div class="day-col">
+            <div class="day-val">—</div>
+            <div class="day-bar-track"><div class="day-bar" style="height:0%;background:var(--bg4)"></div></div>
+            <div class="day-label">D6</div>
+          </div>
+        </div>
+        <div style="font-size:.68rem;color:var(--slate);margin-top:.6rem">Open exceptions remaining per day</div>
+      </div>
+
+      <!-- Exception List -->
+      <div class="panel dash-full">
+        <div class="panel-title">
+          Exception Prioritization — Ranked by Materiality
+          <span class="panel-title-tag">14 Open</span>
+        </div>
+        <div class="exception-list">
+          <div class="exc-item">
+            <div class="exc-rank">#1</div>
+            <div class="exc-severity" style="background:var(--red)"></div>
+            <div style="flex:1">
+              <div class="exc-desc fw6">Intercompany elimination variance — APAC / Americas</div>
+              <div class="exc-entity">APAC-Singapore · AR/AP mismatch · Tolerance exceeded</div>
+            </div>
+            <div class="exc-amount text-red">$2.4M</div>
+            <div class="exc-action">Investigate →</div>
+          </div>
+          <div class="exc-item">
+            <div class="exc-rank">#2</div>
+            <div class="exc-severity" style="background:var(--red)"></div>
+            <div style="flex:1">
+              <div class="exc-desc fw6">Revenue recognition timing difference — EMEA UK</div>
+              <div class="exc-entity">EMEA-UK · Deferred revenue cutoff · Dec vs Jan</div>
+            </div>
+            <div class="exc-amount text-red">$1.8M</div>
+            <div class="exc-action">Investigate →</div>
+          </div>
+          <div class="exc-item">
+            <div class="exc-rank">#3</div>
+            <div class="exc-severity" style="background:var(--amber)"></div>
+            <div style="flex:1">
+              <div class="exc-desc fw6">FX revaluation unrecorded — EMEA Germany</div>
+              <div class="exc-entity">EMEA-Germany · EUR/USD rate delta · Month-end revalue pending</div>
+            </div>
+            <div class="exc-amount text-amber">$0.9M</div>
+            <div class="exc-action">Investigate →</div>
+          </div>
+          <div class="exc-item">
+            <div class="exc-rank">#4</div>
+            <div class="exc-severity" style="background:var(--amber)"></div>
+            <div style="flex:1">
+              <div class="exc-desc fw6">Prepaid amortization schedule mismatch</div>
+              <div class="exc-entity">Corporate HQ · 3 contracts affected · Schedule vs GL</div>
+            </div>
+            <div class="exc-amount text-amber">$0.4M</div>
+            <div class="exc-action">Investigate →</div>
+          </div>
+          <div class="exc-item" style="opacity:.6">
+            <div class="exc-rank">#5–14</div>
+            <div class="exc-severity" style="background:var(--slate)"></div>
+            <div style="flex:1">
+              <div class="exc-desc">10 additional exceptions below materiality threshold</div>
+              <div class="exc-entity">All within tolerance · Assigned to team members</div>
+            </div>
+            <div class="exc-amount text-slate mono">&lt;$0.1M</div>
+            <div class="exc-action">View All →</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <div style="padding:.75rem 1.5rem; background:var(--bg2); border-top:1px solid var(--border)">
+      <div style="font-size:.7rem;color:var(--slate)">
+        <span class="live-dot"></span>
+        Data sourced from certified FinEdge L1 · Oracle ERP · Last refreshed: 2 min ago · 
+        <span style="color:var(--blue); cursor:pointer">View data lineage</span> ·
+        <span style="color:var(--blue); cursor:pointer">Export to Excel</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- SCREEN 4: INSIGHT & INTELLIGENCE — Feature Select     -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<div class="screen" id="screen-insight">
+  <div class="topnav">
+    <div class="topnav-logo">
+      <div class="logo-mark"></div>
+      <div class="logo-text">Fin<span>Edge</span></div>
+    </div>
+    <div class="topnav-breadcrumb">
+      <span class="breadcrumb-item" onclick="showScreen('screen-portal')">Home</span>
+      <span class="breadcrumb-sep">›</span>
+      <span class="breadcrumb-item current">Insight & Intelligence</span>
+    </div>
+    <div class="topnav-right">
+      <div class="nav-badge">Q1 2025</div>
+      <div class="nav-user">AF</div>
+    </div>
+  </div>
+
+  <div class="section-header animate-in">
+    <div class="back-btn" onclick="showScreen('screen-portal')">← Back</div>
+    <div class="section-title-area">
+      <div class="section-label text-blue">Insight & Intelligence</div>
+      <div class="section-title">Forward-Looking Signals for FP&A</div>
+    </div>
+  </div>
+
+  <div class="section-grid animate-in content-scroll">
+    <div class="section-card" onclick="showScreen('screen-forecast')">
+      <div class="sc-badge">⚠ Alert</div>
+      <div class="sc-icon blue">📈</div>
+      <div class="sc-title">Forecast with Early Warning</div>
+      <div class="sc-desc">Revenue forecast with anomaly detection, drift signals, and AI-assisted commentary grounded in governed data. Human-reviewed before use.</div>
+      <div class="sc-cta blue">Open Forecast ›</div>
+    </div>
+    <div class="section-card" onclick="showScreen('screen-insight')">
+      <div class="sc-icon blue">💡</div>
+      <div class="sc-title">Deep Profitability Driver Dashboard</div>
+      <div class="sc-desc">Profitability breakdown by product line, customer vertical, and geography. Drill from consolidated EBITDA down to individual drivers.</div>
+      <div class="sc-cta blue">Open Dashboard ›</div>
+    </div>
+    <div class="section-card" onclick="showScreen('screen-insight')">
+      <div class="sc-icon blue">🔬</div>
+      <div class="sc-title">What-If Scenario Analysis</div>
+      <div class="sc-desc">Driver-based sensitivity modeling. Adjust volume, pricing, FX, and cost assumptions. See EBITDA and margin impact in real time.</div>
+      <div class="sc-cta blue">Build Scenario ›</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- SCREEN 5: FORECAST WITH EARLY WARNING                 -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<div class="screen" id="screen-forecast">
+  <div class="topnav">
+    <div class="topnav-logo">
+      <div class="logo-mark"></div>
+      <div class="logo-text">Fin<span>Edge</span></div>
+    </div>
+    <div class="topnav-breadcrumb">
+      <span class="breadcrumb-item" onclick="showScreen('screen-portal')">Home</span>
+      <span class="breadcrumb-sep">›</span>
+      <span class="breadcrumb-item" onclick="showScreen('screen-insight')">Insight & Intelligence</span>
+      <span class="breadcrumb-sep">›</span>
+      <span class="breadcrumb-item current">Forecast · Early Warning</span>
+    </div>
+    <div class="topnav-right">
+      <div class="nav-badge">Q1 2025 Forecast</div>
+      <div class="nav-user">AF</div>
+    </div>
+  </div>
+
+  <div class="forecast-layout content-scroll" style="display:grid">
+
+    <!-- Chart Panel -->
+    <div class="chart-panel animate-in">
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.5rem">
+        <div>
+          <div style="font-size:.65rem;text-transform:uppercase;letter-spacing:.1em;color:var(--slate);margin-bottom:.2rem">Revenue Forecast — Global</div>
+          <div style="font-size:1rem;font-weight:600">Q1 2025 · Actuals vs Forecast vs Plan</div>
+        </div>
+        <div class="chart-controls">
+          <div class="ctrl-btn active" onclick="setRegion('Global',this)">Global</div>
+          <div class="ctrl-btn" onclick="setRegion('Americas',this)">Americas</div>
+          <div class="ctrl-btn" onclick="setRegion('EMEA',this)">EMEA</div>
+          <div class="ctrl-btn" onclick="setRegion('APAC',this)">APAC ⚠</div>
+        </div>
+      </div>
+
+      <div class="review-banner">
+        ⚠ <strong>Early Warning:</strong>&nbsp; APAC Jan actuals running $12M below plan. Anomaly detected in interconnection revenue. AI commentary available. Human review required before escalation.
+      </div>
+
+      <div class="chart-wrapper">
+        <canvas id="forecastChart"></canvas>
+      </div>
+
+      <div class="anomaly-markers">
+        <div style="font-size:.72rem;color:var(--slate);margin-right:.25rem;align-self:center">Signals:</div>
+        <div class="anomaly-chip red" title="Jan APAC revenue $12M below plan">🔴 APAC Jan variance · −$12M vs plan</div>
+        <div class="anomaly-chip" title="Feb forecast drift accelerating">⚠ Feb drift acceleration · APAC trend</div>
+        <div class="anomaly-chip" title="Americas slight upside">✅ Americas · +$4M upside Feb</div>
+      </div>
+    </div>
+
+    <!-- AI Commentary Panel -->
+    <div class="ai-panel animate-in" style="animation-delay:.15s">
+      <div class="ai-header">
+        <div class="ai-avatar">FE</div>
+        <div>
+          <div class="ai-name">FinEdge AI Commentary</div>
+          <div class="ai-status">● Grounded in governed data</div>
+        </div>
+      </div>
+
+      <div class="ai-disclaimer">
+        ⚠ <span>AI-generated. Human review required before use or escalation. Source: certified FinEdge L1 dataset.</span>
+      </div>
+
+      <div class="ai-commentary">
+        <div class="ai-msg">
+          <span class="tag tag-risk">HIGH</span>
+          <strong>APAC January Miss · −$12M vs Plan</strong><br><br>
+          APAC Jan actuals are tracking <strong>$12M (8.4%) below plan</strong>. The variance is concentrated in <strong>interconnection revenue</strong> across Singapore and Tokyo data centres. Colocation revenue is broadly in line.<br><br>
+          Preliminary pattern match suggests a <strong>customer churn event</strong> in the hyperscaler segment. Cross-referencing with Salesforce CRM data — 2 enterprise contracts show renewal delays flagged in Dec 2024.
+        </div>
+        <div class="ai-msg">
+          <span class="tag tag-warn">WATCH</span>
+          <strong>Feb Forecast Risk — Drift Accelerating</strong><br><br>
+          If the APAC interconnection trend continues at current run-rate, <strong>Feb forecast gap widens to ~$18M</strong>. Early warning threshold breached (Finance-defined: >5% variance for 2 consecutive months).<br><br>
+          Recommended action: validate contract renewal status in Salesforce before finalizing Feb forecast submission.
+        </div>
+        <div class="ai-msg">
+          <span class="tag tag-ok">POSITIVE</span>
+          <strong>Americas Upside Signal · +$4M Feb</strong><br><br>
+          Americas Feb pipeline shows <strong>3 new enterprise activations</strong> ahead of plan. Cross-sell velocity in the US East corridor is above Q4 2024 baseline. Partially offsets APAC risk at global level.
+        </div>
+      </div>
+
+      <div class="ai-actions">
+        <div style="font-size:.68rem;color:var(--slate);margin-bottom:.1rem">Suggested actions:</div>
+        <div class="ai-action-btn">📋 Draft variance commentary for CFO</div>
+        <div class="ai-action-btn">🔗 Cross-reference Salesforce CRM data</div>
+        <div class="ai-action-btn">📊 Run APAC What-If scenario</div>
+        <div class="ai-action-btn">✉ Flag to APAC Finance lead</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// ── NAVIGATION ────────────────────────────────────────────
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  const target = document.getElementById(id);
+  target.classList.add('active');
+  // re-trigger animations
+  target.querySelectorAll('.animate-in').forEach((el,i) => {
+    el.style.animation = 'none';
+    el.offsetHeight;
+    el.style.animation = '';
+    el.style.animationDelay = (i * 0.06) + 's';
+  });
+  if (id === 'screen-forecast') initChart(currentRegion);
+}
+
+// ── CHART ─────────────────────────────────────────────────
+let chartInstance = null;
+let currentRegion = 'Global';
+
+const regionData = {
+  Global: {
+    plan:    [820, 835, 850, 860, 875, 890],
+    actual:  [821, 829, 838, 808, null, null],
+    forecast:[null, null, null, 808, 818, 842],
+  },
+  Americas: {
+    plan:    [380, 386, 392, 396, 400, 406],
+    actual:  [381, 385, 390, 393, null, null],
+    forecast:[null, null, null, 393, 397, 404],
+  },
+  EMEA: {
+    plan:    [260, 265, 270, 274, 278, 282],
+    actual:  [261, 264, 268, 271, null, null],
+    forecast:[null, null, null, 271, 274, 279],
+  },
+  APAC: {
+    plan:    [180, 184, 188, 190, 197, 202],
+    actual:  [179, 180, 180, 144, null, null],
+    forecast:[null, null, null, 144, 147, 159],
+  },
+};
+
+const labels = ['Oct 24', 'Nov 24', 'Dec 24', 'Jan 25', 'Feb 25 (F)', 'Mar 25 (F)'];
+
+function initChart(region) {
+  const ctx = document.getElementById('forecastChart');
+  if (!ctx) return;
+  if (chartInstance) { chartInstance.destroy(); chartInstance = null; }
+  const d = regionData[region];
+
+  chartInstance = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [
+        {
+          label: 'Plan',
+          data: d.plan,
+          borderColor: 'rgba(136,146,176,0.5)',
+          borderDash: [6,3],
+          borderWidth: 1.5,
+          pointRadius: 0,
+          fill: false,
+          tension: 0.3,
+        },
+        {
+          label: 'Actual',
+          data: d.actual,
+          borderColor: '#3B82F6',
+          borderWidth: 2.5,
+          pointRadius: 4,
+          pointBackgroundColor: '#3B82F6',
+          fill: false,
+          tension: 0.3,
+        },
+        {
+          label: 'Forecast',
+          data: d.forecast,
+          borderColor: region === 'APAC' ? '#E31837' : '#1DB76A',
+          borderDash: [4,2],
+          borderWidth: 2,
+          pointRadius: 3,
+          pointBackgroundColor: region === 'APAC' ? '#E31837' : '#1DB76A',
+          fill: false,
+          tension: 0.3,
+        },
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode:'index', intersect:false },
+      plugins: {
+        legend: {
+          labels: {
+            color: '#5A6480',
+            font: { family:"'DM Sans'", size:11 },
+            boxWidth: 20, padding: 16,
+          }
+        },
+        tooltip: {
+          backgroundColor: '#FFFFFF',
+          borderColor: 'rgba(26,26,46,.15)',
+          borderWidth: 1,
+          titleColor: '#1A1A2E',
+          bodyColor: '#5A6480',
+          padding: 10,
+          callbacks: {
+            label: ctx => {
+              if (ctx.parsed.y === null) return null;
+              return ` ${ctx.dataset.label}: $${ctx.parsed.y}M`;
+            }
+          }
+        }
+      },
+      scales: {
+        x: {
+          grid: { color:'rgba(26,26,46,.06)' },
+          ticks: { color:'#5A6480', font:{ family:"'DM Mono'", size:10 } }
+        },
+        y: {
+          grid: { color:'rgba(26,26,46,.06)' },
+          ticks: {
+            color:'#5A6480', font:{ family:"'DM Mono'", size:10 },
+            callback: v => `$${v}M`
+          }
+        }
+      }
+    }
+  });
+}
+
+function setRegion(region, btn) {
+  currentRegion = region;
+  document.querySelectorAll('.ctrl-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  initChart(region);
+
+  // Update warning banner
+  const banner = document.querySelector('.review-banner');
+  const msgs = {
+    Global:   '⚠ <strong>Early Warning:</strong>&nbsp; APAC Jan actuals running $12M below plan. Anomaly detected in interconnection revenue. AI commentary available.',
+    Americas: '✅ <strong>Americas on track.</strong>&nbsp; Feb pipeline shows +$4M upside from 3 new enterprise activations ahead of plan.',
+    EMEA:     '✅ <strong>EMEA broadly on plan.</strong>&nbsp; Minor variance within tolerance. No material signals detected.',
+    APAC:     '🔴 <strong>APAC Alert:</strong>&nbsp; Jan actuals $12M (8.4%) below plan. Interconnection revenue shortfall in Singapore & Tokyo. Forecast risk widening.',
+  };
+  banner.innerHTML = msgs[region];
+  banner.style.background = (region === 'APAC') ? 'rgba(227,24,55,.1)' : (region === 'Global') ? 'rgba(245,158,11,.1)' : 'rgba(29,183,106,.08)';
+  banner.style.borderColor = (region === 'APAC') ? 'rgba(227,24,55,.3)' : (region === 'Global') ? 'rgba(245,158,11,.25)' : 'rgba(29,183,106,.2)';
+  banner.style.color = (region === 'APAC') ? 'var(--red)' : (region === 'Global') ? 'var(--amber)' : 'var(--green)';
+}
+</script>
+</body>
+</html>
